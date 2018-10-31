@@ -18,35 +18,41 @@ int compar(const void *a, const void *b)
 
 int rec_dir(char *path, int index, int name_len)
 {
+    printf("!");
     DIR *d = opendir(path);
     if (!d) {
+        printf("!");
         return 0;
     }
     if (index) {
-        printf("cd %s\n", path + index + 1);
+        printf("cd %s\n", path + index);
     }
     struct stat stb;
     struct dirent *dd;
     int num = 0, maxlen = MAX;
     char **cc = calloc(maxlen, sizeof(char *));
     while ((dd = readdir(d))) {
+       // printf("#..");
         if (strcmp(dd->d_name, ".") && strcmp(dd->d_name, "..")) {
+            //printf("%s\n", dd->d_name);
             int slen = snprintf(path + name_len, PATH_MAX, "/%s", dd->d_name);
             if (slen + name_len < PATH_MAX && lstat(path, &stb) >= 0) {
                 if (S_ISDIR(stb.st_mode)) {
+                //printf("#%s\n", path);
                     if (num == maxlen) {
                         maxlen += MAX;
                         cc = realloc(cc, maxlen * sizeof(char *));
                     }
-                    cc[num++] = strdup(dd->d_name);
+                    cc[num] = calloc(PATH_MAX, sizeof(char));
+                    snprintf(cc[num++], PATH_MAX, "%s", dd->d_name);
+                    //cc[num++] = strdup(dd->d_name);
                 }
             }
         }
     }
     closedir(d);
-    if (num) {
-        qsort(cc, num, sizeof(*cc), compar);
-    }
+    printf("%d\n", num);
+    qsort(cc, num, sizeof(*cc), compar);
     for (int i = 0; i < num; i++) {
         int slen = snprintf(path + name_len, PATH_MAX, "/%s", cc[i]);
         rec_dir(path, name_len, name_len + slen);
@@ -63,6 +69,7 @@ int rec_dir(char *path, int index, int name_len)
 int main(int argc, char *argv[])
 {
     char path[PATH_MAX];
+    printf("+");
     snprintf(path, PATH_MAX, "%s", argv[1]);
     rec_dir(path, 0, strlen(path));
     return 0;
