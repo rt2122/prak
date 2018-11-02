@@ -11,7 +11,7 @@ enum
     MAX_SYM = 62
 };
 
-unsigned char get_ascii(int x)
+unsigned char get_ascii(unsigned x)
 {
     if (x < 10) {
         return x + '0';
@@ -35,6 +35,11 @@ int get_num(unsigned char c)
     return c - 'a' + 10 + 'Z' - 'A' + 1;
 }
 
+unsigned get62(unsigned k)
+{
+    return (unsigned) ((double)((k * A + C) % M) * 62 / M);
+}
+
 int
 main()
 {
@@ -42,17 +47,21 @@ main()
     scanf("%32s", pass);
     int n = 1, len = strlen(pass);
     while (pass[n++] == '.');
-    int k[len];
+    unsigned k[len];
     memset(k, 0, sizeof(k));
-    int k_min = get_num(pass[0]) * M / 62, k_max = (get_num(pass[0]) + 1) * M / 62;
+    //int k_min = get_num(pass[0]) * M / 62, k_max = (get_num(pass[0]) + 1) * M / 62;
 
-    k[0] = k_min;
+    //k[0] = k_min;
+    while (get_ascii(get62(k[0]++)) != pass[0]);
     int ready = 1, flag = 0;
-    while (ready < len && k[0] < k_max) {
+    while (ready < len && k[0] < M) {
         printf("%d ", ready);
         k[ready] = (A * k[ready - 1] + C) % M;
         int c = ((float) k[ready] * MAX_SYM / M);
-        if ((flag = pass[ready] != '.') && pass[ready] != get_ascii(c)) {
+        if (pass[ready] != '.') {
+            flag = 1;
+        }
+        if (pass[ready] != '.' && pass[ready] != get_ascii(c)) {
             ready = 1;
             k[0]++;
         } else {
