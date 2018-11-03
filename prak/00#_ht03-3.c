@@ -2,9 +2,9 @@
 #include <stdio.h>
 enum
 {
-    MULT = 1103515245,
-    INCR = 12345,
-    MOD = (1U << 31) - 1
+    MULT = 1103515245ULL,
+    INCR = 12345ULL,
+    MOD = (unsigned long long) (1U << 31) - 1
 };
 
 typedef struct RandomOperations
@@ -22,16 +22,18 @@ typedef struct RandomGenerator
 
 int destroy_func(RandomGenerator *rr)
 {
-    free(rr->ops);
-    free(rr);
+    if (rr) {
+        if (rr->ops) {
+            free(rr->ops);
+        }
+        free(rr);
+    }
     return 0;
 }
 
 int next_func(RandomGenerator *rr)
 {
-    rr->cur *= MULT;
-    rr->cur += INCR;
-    rr->cur &= MOD;
+    rr->cur = (int)((unsigned long long)rr->cur * MULT + INCR) & MOD;
     return rr->cur;
 }
 
