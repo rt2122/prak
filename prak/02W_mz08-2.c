@@ -12,9 +12,9 @@ main(void) {
             printf("3 ");
             exit(0);
         } else {
-        printf("2 ");
-        wait(NULL);
-        exit(0);
+            printf("2 ");
+            wait(NULL);
+            exit(0);
         }
     } else {
         wait(NULL);

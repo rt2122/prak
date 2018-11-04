@@ -31,7 +31,7 @@ main(int argc, char **argv)
 
     for ( ; count; count--) {
         e = lseek(f, - (long) sizeof(h) * 2LL, SEEK_CUR);
-        if (write(f, &h, sizeof(h)) < 0) {
+        if (write(f, &h, sizeof(h)) != sizeof(h)) {
             return 1;
         }
         h = hash_function(h);

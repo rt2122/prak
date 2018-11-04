@@ -37,12 +37,12 @@ int next_func(RandomGenerator *rr)
     return rr->cur;
 }
 
+RandomOperations opers = {destroy_func, next_func};
+
 RandomGenerator *random_create(int seed)
 {
     RandomGenerator *rr = calloc(1, sizeof(RandomGenerator));
-    rr->ops = calloc(1, sizeof(RandomOperations));
-    rr->ops->destroy = destroy_func;
-    rr->ops->next = next_func;
+    rr->ops = &opers;
     rr->cur = seed;
     return rr;
 }
