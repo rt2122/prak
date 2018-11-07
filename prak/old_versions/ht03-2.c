@@ -8,20 +8,22 @@ int main()
 {
     int n;
     scanf("%d", &n);
-    int val, prob_val, cur = 0, prob[MAX_PERCENT] = { 0 };
+    int num[n][2];
     for (int i = 0 ; i < n; i++) {
-        scanf("%d%d", &val, &prob_val);
-        for (int j = cur; j < cur + prob_val; j++) {
-            if (j == MAX_PERCENT) {
-                return 1;
-            }
-            prob[j] = val;
-        }
-        cur += prob_val;
+        scanf("%d%d", &num[i][0], &num[i][1]);
     }
     int m, seed;
     scanf("%d%u", &m, &seed);
     srand(seed);
+
+    int prob[MAX_PERCENT] = { 0 };
+    int cur = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = cur; j < cur + num[i][1]; j++) {
+            prob[j] = num[i][0];
+        }
+        cur += num[i][1];
+    }
     for (int i = 0; i < m; i++) {
         double num = rand() / (RAND_MAX + 1.0);
         int ans = prob[(int)(num * MAX_PERCENT)];

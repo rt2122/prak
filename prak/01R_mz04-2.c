@@ -12,7 +12,7 @@ main(int argc, char **argv)
         int r;
         sscanf(argv[i], "%o", &r);
         int z = 1 << (len - 1);
-        for (int j = 0; j < 9; j++) {
+        for (int j = 0; j < len; j++) {
             char c = z & r ? S[j] : '-';
             printf("%c", c);
             z >>= 1;
