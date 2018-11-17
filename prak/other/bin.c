@@ -4,10 +4,10 @@ int
 main(void)
 {
     FILE *f = fopen("out.bin", "wb");
-    char m[] = {0x20, 0x20, 0x20, 0xC2, 0XA2, 0x21, 0x21, 0x21, 0x20, 0x21, 0};
+    int m[] = {3, 2, 3, 12, 5, 0, 1, 0, 0, 10, 4, 1, 8, 0, 0, 11, 0, 0};
     int len = 0;
     while (m[len++]);
-    fwrite(m, 1, len, f);
+    fwrite(m, sizeof(int), sizeof(m) / sizeof(int), f);
     fclose(f);
     return 0;
 }

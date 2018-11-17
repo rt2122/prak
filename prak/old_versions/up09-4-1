@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <linux/limits.h>
+
+extern char **environ;
+const char *env_dir[] = { "XDG_RUNTIME_DIR", "TMPDIR" };
+const char starting[] = "#!/usr/bin/python3 -E\nimport os\nprint(";
+const char star[] = "*";
+const char rem[] = ")\nos.remove(\"";
+const char ending[] = "\")\n";
+
+int create_name(char *buf) {
+    snprintf(buf, PATH_MAX, "%d", getpid());
+    return 0;
+}
+
+char *find_env(const char *val)
+{
+    int length = strlen(val);
+    for (int i = 0; environ[i]; i++) {
+        if (!strncmp(environ[i], val, length)) {
+            return environ[i] + length + 1;
+        }
+    }
+    return NULL;
+
+}
+
+int
+main(int argc, char **argv)
+{
+    char *path = find_env(env_dir[0]);
+    if (!path) {
+        path = find_env(env_dir[1]);
+        if (!path) {
+            char buf[] = "/tmp";
+            path = buf;
+        }
+    }
+    char name_tmp[PATH_MAX], full_path[PATH_MAX];
+    int fd;
+    create_name(name_tmp);
+    int path_len;
+    if ((path_len = snprintf(full_path, sizeof(full_path), "%s/%s", path, name_tmp)) > sizeof(full_path)) {
+        return 1;
+    }
+    if ((fd = open(full_path, O_CREAT | O_WRONLY | O_EXCL, 0700)) < 0 ) {
+        return 1;
+    }
+    write(fd, starting, sizeof(starting));
+    for (int i = 1; i < argc; i++) {
+        write(fd, argv[i], strlen(argv[i]));
+        if (i != argc - 1) {
+            write(fd, star, sizeof(star));
+        } else {
+            write(fd, rem, sizeof(rem));
+            write(fd, full_path, path_len);
+            write(fd, ending, sizeof(ending));
+        }
+    }
+    close(fd);
+    execlp("/bin/sh", "sh", "-c", full_path, NULL);
+    _exit(1);
+}

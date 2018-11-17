@@ -10,17 +10,39 @@ struct Task
     unsigned *gids;
 };
 
-int myaccess(const struct stat *stb, const struct Task *task, int access) {
+enum
+{
+    USER_SHIFT = 6,
+    GROUP_SHIFT = 3
+};
+
+int
+ret_acc(int mode, int shift, int acc)
+{
+    return ((mode >> shift) & acc) == acc;
+}
+
+int check_group(unsigned *gids, int gid_count, int id)
+{
+    for (int i = 0; i < gid_count; i++) {
+        if (gids[i] == id) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int
+myaccess(const struct stat *stb, const struct Task *task, int access)
+{
     if (task->uid == 0) {
         return 1;
     }
     if (stb->st_uid == task->uid) {
-        return (((stb->st_mode) >> 6) & access) == access;
+        return ret_acc(stb->st_mode, USER_SHIFT, acc);
     }
-    for (int i = 0; i < task->gid_count; i++) {
-        if (task->gids[i] == stb->st_gid) {
-            return (((stb->st_mode) >> 3) & access) == access;
-        }
+    if (check_group(task->gids, task->gid_count, stb->st_gid)) {
+        return ret_acc(stb->st_mode, GROUP_SHIFT, access);
     }
-    return ((stb->st_mode) & access) == access;
+    return ret_acc(stb->st_mode, 0, access);
 }
