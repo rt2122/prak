@@ -8,25 +8,24 @@ int
 main(int argc, char **argv)
 {
     int f = open(argv[1], O_RDWR, 0600);
-    long long min = 0, cur = 0;
+    long long min = 0, cur = 0, min_idx = -1, cur_idx = 0;
     int flag = 1;
-    while (read(f, &cur, sizeof(cur)) > 0) {
+    while (read(f, &cur, sizeof(cur)) == sizeof(cur)) {
         if (cur < min || flag) {
             min = cur;
+            min_idx = cur_idx;
             flag = 0;
         }
+        cur_idx += sizeof(cur);
     }
     if (min == LLONG_MIN) {
-        min++;
+        min = 0;
+    } else {
+        min = -min;
     }
-    lseek(f, 0, 0);
-    while (read(f, &cur, sizeof(cur)) > 0) {
-        if (cur == min) {
-            lseek(f, -(int) sizeof(cur), 1);
-            min = -min;
-            write(f, &min, sizeof(cur));
-            break;
-        }
+    if (min_idx >= 0) {
+        lseek(f, (long long) min_idx, 0);
+        write(f, &min, sizeof(min));
     }
     close(f);
     return 0;
