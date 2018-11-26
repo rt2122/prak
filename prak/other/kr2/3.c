@@ -1,54 +1,77 @@
 #include <stdio.h>
-#include <stdlb.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
 
 enum
 {
-    BUF = 4,
+    BUF = 400,
+    DELT = 40,
+    N_RIGHTS = 3,
+    ADDR_BEFORE = 2,
     ADDR_FOUND = 1,
-    ADDR_NOT_FOUND = 0,
-    ACC_POS = sizeof(int) * 4 + 2,
-    READ = 4,
-    WRITE = 2,
-    XEC = 1,
-    EXIST = 0,
-    EX_POS =
+    ADDR_AFTER = 0,
 };
 
-int
-rights(char *s, int acc)
+typedef struct Page
 {
+    unsigned long long st, en;
+    int rights;
+} Page;
 
-}
 
 int
-access_to(char *s, int addr, int acc, int *flag)
+get_rights(char *s)
 {
-    unsigned int starts, ends;
-    sscanf(s, "%x-%x", &starts, &ends);
-    if (starts <= addr && addr <= ends) {
-        *flag = ADDR_FOUND;
-    } else {
-        *flag = ADDR_NOT_FOUND;
-        return 0;
+    int ans = 0;
+    for (int i = 0; i < N_RIGHTS; ++i) {
+        ans <<= 1;
+        ans |= s[i] != '-';
     }
-    char buf[BUF];
-    snprintf(buf, BUF + 1, "%s", s + ACC_POS);
-
+    return ans;
 }
 
 int
 main(int argc, char **argv)
 {
-    int fd = open(argv[1], O_RDONLY, 0);
-    struct stat ss;
-    fstat(fd, &ss);
-    char *ptr = mmap(NULL, ss->st_size, PROT_READ, MAP_SHARED, fd, 0);
-    int addr, acc;
-    while (scanf("%x %d", &addr, &acc) == 2) {
-
+    FILE *f = fopen(argv[1], "r");
+    char buf[BUF];
+    int cur = 0, max = DELT;
+    Page *pages = calloc(max, sizeof(Page));
+    while (fgets(buf, BUF, f)) {
+        if (cur == max) {
+            max += DELT;
+            pages = realloc(pages, max * sizeof(pages[0]));
+        }
+        char r[N_RIGHTS + 1];
+        sscanf(buf, "%llx-%llx%*c%3s", &(pages[cur].st), &(pages[cur].en), r);
+        pages[cur].rights = get_rights(r);
+        ++cur;
     }
-    close(fd);
+    fclose(f);
+    unsigned long long addr;
+    int acc;
+    while (scanf("%llx%d", &addr, &acc) == 2) {
+        int flag = ADDR_AFTER, i;
+        for (i = 0; i < cur && flag == ADDR_AFTER; ++i) {
+            if (addr < pages[i].st) {
+                flag = ADDR_BEFORE;
+            } else {
+                if (addr <= pages[i].en) {
+                    flag = ADDR_FOUND;
+                }
+            }
+        }
+        if (flag == ADDR_BEFORE) {
+            printf("0\n");
+        }
+        if (flag == ADDR_FOUND) {
+            printf("%d\n", (pages[i].rights & acc) != 0 || !acc);
+        }
+    }
+    free(pages);
     return 0;
 }

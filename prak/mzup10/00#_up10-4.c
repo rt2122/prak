@@ -17,7 +17,7 @@ int
 main(int argc, char **argv)
 {
     if (argc < 2) {
-        _exit(1);
+        _exit(0);
     }
     int fd[N_FD];
     int i, pid;
