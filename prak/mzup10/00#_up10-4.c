@@ -6,9 +6,11 @@
 
 enum { N_FD = 2 };
 
-int sys_check(int x) {
+int sys_check(int x, int *pids, int n_proc) {
     if (x == -1) {
-        kill(0, SIGKILL);
+        for (int i = 0; i < n_proc; ++i) {
+            kill(pids[i], SIGKILL);
+        }
         _exit(1);
     }
     return x;
@@ -20,26 +22,29 @@ main(int argc, char **argv)
         _exit(0);
     }
     int fd[N_FD];
-    int i, pid;
+    int i;
+    int pids[argc - 1];
     for (i = 1; i < argc - 1; i++) {
-        sys_check(pipe(fd));
-        pid = sys_check(fork());
-        if (!pid) {
-            sys_check(close(fd[0]));
-            sys_check(dup2(fd[1], 1));
-            sys_check(close(fd[1]));
+        sys_check(pipe(fd), pids, argc - 1);
+        pids[i - 1] = sys_check(fork(), pids, argc - 1);
+        if (!pids[i - 1]) {
+            close(fd[0]);
+            dup2(fd[1], 1);
+            close(fd[1]);
             execlp(argv[i], argv[i], NULL);
-            sys_check(-1);
+            _exit(1);
         }
-        sys_check(close(fd[1]));
-        sys_check(dup2(fd[0], 0));
-        sys_check(close(fd[0]));
+        sys_check(close(fd[1]), pids, argc - 1);
+        sys_check(dup2(fd[0], 0), pids, argc - 1);
+        sys_check(close(fd[0]), pids, argc - 1);
     }
-    pid = sys_check(fork());
-    if (!pid) {
+    pids[i] = sys_check(fork(), pids, argc - 1);
+    if (!pids[i]) {
         execlp(argv[argc - 1], argv[argc - 1], NULL);
-        sys_check(-1);
+        _exit(1);
     }
-    while (wait(NULL) != -1);
+    //sys_check(close(0), pids, argc - 1);
+    //sys_check(close(1), pids, argc - 1);
+    while (wait(NULL) != -1) {}
     _exit(0);
 }
