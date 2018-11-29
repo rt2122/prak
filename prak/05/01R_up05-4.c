@@ -39,7 +39,7 @@ myaccess(const struct stat *stb, const struct Task *task, int access)
         return 1;
     }
     if (stb->st_uid == task->uid) {
-        return ret_acc(stb->st_mode, USER_SHIFT, acc);
+        return ret_acc(stb->st_mode, USER_SHIFT, access);
     }
     if (check_group(task->gids, task->gid_count, stb->st_gid)) {
         return ret_acc(stb->st_mode, GROUP_SHIFT, access);
