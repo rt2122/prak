@@ -58,20 +58,17 @@ int main(int argc, char **argv)
         int x, pid;
         read(fd[0], &x, sizeof(x));
         read(fd[0], &pid, sizeof(pid));
-        if (!x) {
+        if (x == max) {
             _exit(0);
         }
         printf("%d %d\n", num, x);
         ++x;
-        if (x == max) {
-            x = 0;
-        }
         int mypid = getpid();
         //num = 1 - num;
         write(fd[1], &x, sizeof(x));
         write(fd[1], &mypid, sizeof(mypid));
         kill(pid, SIGUSR1);
-        if (!x) {
+        if (x == max) {
             _exit(0);
         }
     }
