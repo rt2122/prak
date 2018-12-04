@@ -3,10 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <errno.h>
 
 char
 *getline2(FILE *f);
-
 
 enum
 {
@@ -48,7 +48,8 @@ main(void)
     char *s;
     int num_line = 1;
     while ((s = getline2(stdin))) {
-        int word_cur_pos = 1, sum = 0;
+        int word_cur_pos = 1;
+        unsigned sum = 0;
         if (blank_line(s)) {
             sum = BLANK_LINE + num_line;
         } else {
@@ -57,15 +58,25 @@ main(void)
             } else {
                 char *sym_cur_pos = s;
                 while (*sym_cur_pos) {
-                    while (isspace(*sym_cur_pos)) {
+                    if (isspace(*sym_cur_pos)) {
                         ++sym_cur_pos;
                     }
                     long x = strtol(sym_cur_pos, &sym_cur_pos, BASIS);
-                    if (x < INT_MIN) {
-                        x = -word_cur_pos;
+                    if (errno == ERANGE) {
+                        if (x == LONG_MIN) {
+                            x = -word_cur_pos;
+                        } else {
+                            if (x == LONG_MAX) {
+                                x = word_cur_pos;
+                            }
+                        }
                     } else {
                         if (x > INT_MAX) {
-                            x = word_cur_pos;
+                            x = -word_cur_pos;
+                        } else {
+                            if (x < INT_MIN) {
+                                x = word_cur_pos;
+                            }
                         }
                     }
                     sum += x;
