@@ -11,7 +11,7 @@ enum
     N_NUMS = 2
 };
 
-volatile int flag = 0;
+volatile sig_atomic_t flag = 0;
 
 void handler(int sig)
 {
@@ -37,18 +37,26 @@ int main(int argc, char **argv)
     int fd[N_FD];
     pipe(fd);
     FILE *r = fdopen(fd[0], "r");
-    FILE *w = fdopen(fd[1], "a");
+    FILE *w = fdopen(fd[1], "w");
     int pid1, pid2;
     pid1 = fork();
     if (pid1) {
         pid2 = fork();
         if (pid2) {
-            fprintf(w, "1 %d ", pid2);
+            fprintf(w, "1\n%d\n", pid2);
             fflush(w);
             kill(pid1, SIGUSR1);
-            while (wait(NULL) > 0 ) {}
+            int fpid = wait(NULL);
+            fprintf(w, "%d\n%d\n", max, fpid);
+            fflush(w);
+            fpid = (fpid == pid1) ? pid2 : pid1;
+            kill(fpid, SIGUSR1);
+            wait(NULL);
             printf("Done\n");
-            _exit(0);
+            fflush(stdout);
+            fclose(r);
+            fclose(w);
+            exit(0);
         } else {
             num = 2;
         }
@@ -62,27 +70,21 @@ int main(int argc, char **argv)
         }
 
         flag = 0;
-        int x, pid, er = fscanf(r, "%d%d", &x, &pid);
-        if (er != N_NUMS) {
-            printf("%d\n", pid);
-            kill(pid, SIGUSR1);
-            _exit(0);
-        }
+        int x, pid;
+        fscanf(r, "%d%d", &x, &pid);
+        
         if (x == max) {
             fclose(r);
             fclose(w);
-            kill(pid, SIGUSR1);
-            _exit(0);
+            exit(0);
         }
         printf("%d %d\n", num, x);
+        fflush(stdout);
         ++x;
         int mypid = getpid();
-        fprintf(w,"%d %d ", x, mypid);
+        fprintf(w, "%d\n%d\n", x, mypid);
         fflush(w);
-        if (x == max - 1 || max == BORDER) {
-            fclose(w);
-            fclose(r);
-        }
+        
         kill(pid, SIGUSR1);
     }
 }
