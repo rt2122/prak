@@ -11,19 +11,17 @@ enum
 };
 
 volatile int i = 0;
+volatile int flag = 0;
 
 void
-handler1(int sig)
+handler(int sig)
 {
-    i += USR_ONE;
-    printf("%d %d\n", sig, i);
-    fflush(stdout);
-}
-
-void
-handler2(int sig)
-{
-    i += USR_TWO;
+    if (sig == SIGUSR1) {
+        i += USR_ONE;
+    }
+    if (sig == SIGUSR2) {
+        i += USR_TWO;
+    }
     printf("%d %d\n", sig, i);
     fflush(stdout);
     if (i < 0) {
@@ -40,13 +38,16 @@ main(int argc, char *argv[])
     sigaddset(&mask, SIGUSR2);
 
     sigprocmask(SIG_BLOCK, &mask, &oldmask);
-    sigaction(SIGUSR1, &(struct sigaction) { .sa_handler = handler1, .sa_flags = SA_RESTART }, NULL);    
-    sigaction(SIGUSR2, &(struct sigaction) { .sa_handler = handler2, .sa_flags = SA_RESTART }, NULL);    
+    sigaction(SIGUSR1, &(struct sigaction) { .sa_handler = handler, .sa_flags = SA_RESTART }, NULL);    
+    sigaction(SIGUSR2, &(struct sigaction) { .sa_handler = handler, .sa_flags = SA_RESTART }, NULL);    
     printf("%d\n", getpid());
     fflush(stdout);
 
     while (1) {
-        sigsuspend(&oldmask);
+        while (!flag) {
+            sigsuspend(&oldmask);
+        }
+        flag = 0;
     }
     return 0;
 }
