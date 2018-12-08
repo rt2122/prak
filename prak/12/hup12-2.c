@@ -45,7 +45,6 @@ main(int argc, char *argv[])
         pipe(pipe12);
         int p2 = fork();
         if (!p2) {
-            dup2(pipe24[1], 1);
             close(pipe24[1]); //pipe24 closed in p2
             dup2(pipe12[0], 0);
             close(pipe12[0]);
