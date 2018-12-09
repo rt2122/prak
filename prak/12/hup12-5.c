@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <wait.h>
 
-int ss, gs;
+int gs, ss;
 
 enum
 {
@@ -17,14 +17,14 @@ enum
     ENDF = 2
 };
 
-int check = 0;
+volatile int check = 0;
 void 
 get_check(int sig)
 {
     check = 1;
 }
 
-int got_sig = 0, bit;
+volatile int got_sig = 0, bit;
 void 
 get_sig(int sig)
 {
@@ -51,7 +51,6 @@ send_byte(uchar byte, sigset_t *oldmask)
         while (!check) {
             sigsuspend(oldmask);
         }
-        //printf("4");
         check = 0;
         cur_bit >>= 1;
     }
@@ -66,7 +65,6 @@ recv_byte(sigset_t *oldmask, int pid_check)
         while (!got_sig) {
             sigsuspend(oldmask);
         }
-        //printf("#");
         if (got_sig == ENDF) {
             fflush(stdout);
             _exit(0);
@@ -74,7 +72,6 @@ recv_byte(sigset_t *oldmask, int pid_check)
         got_sig = 0;
         cur = (cur << 1) | bit;
         kill(pid_check, SIGALRM);
-        //printf("gs:sent alarm\n");
     }
     return cur;
 }
@@ -95,22 +92,12 @@ main(int argc, char *argv[])
     gs = fork();
     if (!gs) {   
         int sspid = 0, ppid = getppid();
-        /*
-        printf("gs:waiting for parent %d\n", ppid);
-        while (!got_sig) {
-            sigsuspend(&oldmask);
-        }
-        got_sig = 0;
-        */
         for (int i = 0; i < sizeof(sspid); ++i) {
-            //printf("gs:waiting for %d pid\n", i);
             uchar byte = recv_byte(&oldmask, ppid);
             sspid = (sspid << CHAR_BIT) | byte;
         }
-        //printf("gs:sspid = %d\n", sspid);
         kill(sspid, SIGALRM);
         while (4) {
-            //printf("gs:waiting for bytes\n");
             uchar cur = recv_byte(&oldmask, sspid);
             write(1, &cur, sizeof(cur));
         }
@@ -125,19 +112,15 @@ main(int argc, char *argv[])
 
     ss = fork();
     if (!ss) {
-        //printf("ss:gs = %d\n", gs);
-        
         int fd = open(argv[1], O_RDONLY, 0);
         uchar tmp;
         
-        //printf("ss:waiting for gs\n");
         while (!check) {
             sigsuspend(&oldmask);
         }
         check = 0;
         
         while (read(fd, &tmp, sizeof(tmp)) > 0) {
-            //printf("ss:waiting to send\n");
             send_byte(tmp, &oldmask);
         }
         kill(gs, SIGIO);
@@ -146,14 +129,10 @@ main(int argc, char *argv[])
     }
 
     unsigned b_mask = ELDER_BYTE, pid = ss, shift = SHIFT;
-    //printf("father: sspid = %d\n", ss);
-    //kill(gs, SIGUSR1);
     while (b_mask) {
-        //printf("father:sending bytes\n");
         send_byte((pid & b_mask) >> shift, &oldmask);
         shift -= CHAR_BIT;
         b_mask >>= CHAR_BIT;
-        //printf("#%d\n", (pid & b_mask) >> shift);
     }
 
     while (wait(NULL) > 0) {}
