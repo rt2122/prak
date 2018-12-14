@@ -11,7 +11,7 @@ void
 push_sqr(int count, int mod)
 {
     for (int i = 1; i <= count; ++i) {
-        int tmp = (i * i) % mod;
+        int tmp = i % mod * i % mod;
         printf("%d\n", tmp);
     }
     fflush(stdout);
@@ -23,7 +23,7 @@ get_chars(void)
     char tmp;
     while (read(0, &tmp, sizeof(tmp)) == sizeof(tmp)) {
         tmp = (tmp == ' ') ? '\n' : tmp;
-        write(1, &tmp, sizeof(tmp));
+        printf("%c", tmp);
     }
     fflush(stdout);
 }
@@ -45,20 +45,21 @@ main(int argc, char *argv[])
         pipe(pipe12);
         int p2 = fork();
         if (!p2) {
-            close(pipe24[1]); //pipe24 closed in p2
+            dup2(pipe24[1], 1);
+            close(pipe24[1]);
             dup2(pipe12[0], 0);
             close(pipe12[0]);
-            close(pipe12[1]); //pipe12 closed in p2
+            close(pipe12[1]); 
             execlp(prog, prog, NULL);
             _exit(0);
         }
         dup2(pipe12[1], 1);
-        close(pipe12[1]); //pipe24 closed in p1
+        close(pipe12[1]);
         close(pipe24[1]);
-        close(pipe12[0]); //pipe12 closed in p1
+        close(pipe12[0]);
         push_sqr(count, mod);
         close(1);
-        close(0); //std closed in p1
+        close(0);
         wait(NULL);
         _exit(0);
     }
@@ -69,20 +70,20 @@ main(int argc, char *argv[])
         int p4 = fork();
         if (!p4) {
             dup2(pipe24[0], 0);
-            close(pipe24[0]); //pipe24 closed in p4
+            close(pipe24[0]);
             get_chars();
             _exit(0);
         }
-        close(pipe24[0]); //pipe24 closed in p3
+        close(pipe24[0]);
         close(0);
-        close(1); //std closed in p3
+        close(1); 
         wait(NULL);
         _exit(0);
     }
-    close(pipe24[0]); //pipe24 closed in p0
+    close(pipe24[0]);
     close(0);
     while (wait(NULL) > 0) {}
     printf("0\n");
     fflush(stdout);
-    return 0;
+    _exit(0);
 }

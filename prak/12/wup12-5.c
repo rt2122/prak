@@ -6,8 +6,6 @@
 #include <limits.h>
 #include <wait.h>
 
-int gs, ss;
-
 enum
 {
     ELDER_BIT = 0x80,
@@ -42,7 +40,7 @@ get_sig(int sig)
 typedef unsigned char uchar;
 
 void 
-send_byte(uchar byte, sigset_t *oldmask)
+send_byte(uchar byte, sigset_t *oldmask, int gs)
 {
     uchar cur_bit = ELDER_BIT;
     while (cur_bit) {
@@ -79,6 +77,9 @@ recv_byte(sigset_t *oldmask, int pid_check)
 int
 main(int argc, char *argv[])
 {
+    if (argc < 2) {
+        _exit(0);
+    }
     sigset_t mask, oldmask;
     sigemptyset(&mask);
     sigaddset(&mask, SIGIO);
@@ -89,16 +90,16 @@ main(int argc, char *argv[])
     sigaction(SIGIO, &ssa, NULL);
     sigaction(SIGUSR1, &ssa, NULL);
     sigaction(SIGUSR2, &ssa, NULL);
-    gs = fork();
+    int gs = fork();
     if (!gs) {   
-        int sspid = 0, ppid = getppid();
-        for (int i = 0; i < sizeof(sspid); ++i) {
+        int ss = 0, ppid = getppid();
+        for (int i = 0; i < sizeof(ss); ++i) {
             uchar byte = recv_byte(&oldmask, ppid);
-            sspid = (sspid << CHAR_BIT) | byte;
+            ss = (ss << CHAR_BIT) | byte;
         }
-        kill(sspid, SIGALRM);
+        kill(ss, SIGALRM);
         while (4) {
-            uchar cur = recv_byte(&oldmask, sspid);
+            uchar cur = recv_byte(&oldmask, ss);
             write(1, &cur, sizeof(cur));
         }
         _exit(0);
@@ -110,7 +111,7 @@ main(int argc, char *argv[])
     sigaction(SIGALRM, &(struct sigaction){ .sa_handler = get_check, 
                 .sa_flags = SA_RESTART}, NULL);
 
-    ss = fork();
+    int ss = fork();
     if (!ss) {
         int fd = open(argv[1], O_RDONLY, 0);
         uchar tmp;
@@ -121,7 +122,7 @@ main(int argc, char *argv[])
         check = 0;
         
         while (read(fd, &tmp, sizeof(tmp)) > 0) {
-            send_byte(tmp, &oldmask);
+            send_byte(tmp, &oldmask, gs);
         }
         kill(gs, SIGIO);
         close(fd);
@@ -130,7 +131,7 @@ main(int argc, char *argv[])
 
     unsigned b_mask = ELDER_BYTE, pid = ss, shift = SHIFT;
     while (b_mask) {
-        send_byte((pid & b_mask) >> shift, &oldmask);
+        send_byte((pid & b_mask) >> shift, &oldmask, gs);
         shift -= CHAR_BIT;
         b_mask >>= CHAR_BIT;
     }
