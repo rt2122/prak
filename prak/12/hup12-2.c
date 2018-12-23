@@ -11,21 +11,21 @@ void
 push_sqr(int count, int mod)
 {
     for (int i = 1; i <= count; ++i) {
-        int tmp = i % mod * i % mod;
+        int tmp = (unsigned long long)i % (unsigned long long)mod * (unsigned long long)i % 
+                (unsigned long long)mod;
         printf("%d\n", tmp);
+        fflush(stdout);
     }
-    fflush(stdout);
 }
 
 void
-get_chars(void)
+get_nums(void)
 {
-    char tmp;
-    while (read(0, &tmp, sizeof(tmp)) == sizeof(tmp)) {
-        tmp = (tmp == ' ') ? '\n' : tmp;
-        printf("%c", tmp);
+    int tmp;
+    while (scanf("%d", &tmp) == 1) {
+        printf("%d\n", tmp);
+        fflush(stdout);
     }
-    fflush(stdout);
 }
 
 int
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
             close(pipe12[0]);
             close(pipe12[1]); 
             execlp(prog, prog, NULL);
-            _exit(0);
+            _exit(1);
         }
         dup2(pipe12[1], 1);
         close(pipe12[1]);
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
         if (!p4) {
             dup2(pipe24[0], 0);
             close(pipe24[0]);
-            get_chars();
+            get_nums();
             _exit(0);
         }
         close(pipe24[0]);

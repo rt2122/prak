@@ -1,0 +1,70 @@
+#include <iostream>
+#include<conio.h>
+#include<math.h>
+#include<cstdlib>
+ 
+using namespace std;
+ 
+ int main()
+{ setlocale(LC_CTYPE,"RUSSIAN");
+ int n,i,j,k=0;
+float eps;
+float norma;
+float w;
+float A[10][10],B[10],x[10],xn[10];
+            cout<<"Введите размерность матрицы N*N:";
+            cin>>n;
+            cout<<"Введите элементы матрицы: \n";
+            for(i=0;i<n;i++)
+            { 
+               for(j=0;j<n;j++)
+               {
+                 cout<<"  A ["<<i+1<<"]["<<j+1<<"] = ";
+                  cin>>A[i][j];
+               }
+            }
+            cout<<"Введите свободные члены:\n";
+            for(i=0;i<n;i++)
+            { 
+                cout<<"  B ["<<"|"<<i+1<<"|"<<"] = ";
+                cin>>B[i];
+            }
+            cout<<("Введите точность:");
+            cin>>eps;
+            cout<<"Введите параметр релаксации w: ";
+                cin>>w;
+ 
+                    for(i=0;i<10;i++)
+            {
+            xn[i]=0;
+            x[i]=xn[i];
+            }
+            do
+            {  k++;
+               norma=0;
+             
+               for(i=0;i<n;i++)
+               {
+                  x[i]=B[i];
+                  for(j=0;j<n;j++)
+                  {
+                      if(i!=j)
+                          x[i]=x[i]-A[i][j]*x[j];
+                  }
+                  x[i]/=A[i][i];
+                  
+                 x[i]=w*x[i]+(1-w)*xn[i];
+                           
+                  if(fabs(x[i]-xn[i]) > norma)
+                      norma=fabs(x[i]-xn[i]);
+                      xn[i]=x[i];
+               }
+            }
+             while(norma > eps);
+             cout<<"Кол-во итераций: ";cout<<k<<" \n";
+             for(i=0;i<n;i++)
+                 cout<<"x ["<<i+1<<"] = "<<x[i]<<"; ";
+ 
+         getch();
+         return 0;
+  } 

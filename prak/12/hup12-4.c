@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 enum { BUF = 100 };
 const char code[] = "#!/usr/bin/python3\nx = int(input())\nprint((x * (x + 1) // 2) %% %d)\n";
@@ -13,6 +14,7 @@ main(int argc, char *argv[])
     int mod;
     sscanf(argv[2], "%d", &mod);
     char text[BUF];
+    chmod(out, 0777);
     int fd = open(out, O_CREAT | O_WRONLY | O_TRUNC, 0751);
     int size = snprintf(text, sizeof(text), code, mod);
     if (size >= sizeof(text)) {
