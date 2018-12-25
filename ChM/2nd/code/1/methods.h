@@ -3,7 +3,7 @@
 #include <math.h>
 
 double
-dif_between_fun(int n, double x[], double y[], double u[])
+dif_between_fun(int n, double y[], double u[])
 {
     double dif_max = 0;
     for (int i = 0; i < n; ++i) {
@@ -80,10 +80,10 @@ rk4(int n, double x[], double y[], double (*f)(double x, double y))
     double k1, k2, k3, k4, h = x[1] - x[0];
     for (int i = 0; i < n; ++i) {
         k1 = f(x[i], y[i]);
-        k2 = f(x[i] + h / 2, y[i] + h * k1 / 2);
-        k3 = f(x[i] + h / 2, y[i] + h * k2 / 2);
+        k2 = f(x[i] + h / 2.0, y[i] + h * k1 / 2.0);
+        k3 = f(x[i] + h / 2.0, y[i] + h * k2 / 2.0);
         k4 = f(x[i] + h, y[i] + h * k3);
-        y[i + 1] = y[i] + h * (k1 + 2 * k2 + 3 * k3 + k4) / 6;
+        y[i + 1] = y[i] + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
     }
 }
 
@@ -95,14 +95,14 @@ sys_rk4(int n, double x[], double u[], double v[], double (*f)(double x, double 
     for (int i = 0; i < n; ++i) {
         k1 = f(x[i], u[i], v[i]);
         m1 = g(x[i], u[i], v[i]);
-        k2 = f(x[i] + h / 2, u[i] + k1 / 2, v[i] + m1 / 2);
-        m2 = g(x[i] + h / 2, u[i] + k1 / 2, v[i] + m1 / 2);
-        k3 = f(x[i] + h / 2, u[i] + k2 / 2, v[i] + m2 / 2);
-        m3 = g(x[i] + h / 2, u[i] + k2 / 2, v[i] + m2 / 2);
-        k4 = f(x[i] + h, u[i] + k3, v[i] + m3);
-        m4 = g(x[i] + h, u[i] + k3, v[i] + m3);
-        u[i + 1] = u[i] + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
-        v[i + 1] = v[i] + h * (m1 + 2 * m2 + 2 * m3 + m4) / 6;
+        k2 = f(x[i] + h / 2.0, u[i] + h * k1 / 2.0, v[i] + h * m1 / 2.0);
+        m2 = g(x[i] + h / 2.0, u[i] + h * k1 / 2.0, v[i] + h * m1 / 2.0);
+        k3 = f(x[i] + h / 2.0, u[i] + h * k2 / 2.0, v[i] + h * m2 / 2.0);
+        m3 = g(x[i] + h / 2.0, u[i] + h * k2 / 2.0, v[i] + h * m2 / 2.0);
+        k4 = f(x[i] + h, u[i] + h * k3, v[i] + h * m3);
+        m4 = g(x[i] + h, u[i] + h * k3, v[i] + h * m3);
+        u[i + 1] = u[i] + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+        v[i + 1] = v[i] + h * (m1 + 2.0 * m2 + 2.0 * m3 + m4) / 6.0;
     }
 }
 

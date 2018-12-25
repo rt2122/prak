@@ -17,11 +17,18 @@ main(int argc, char **argv)
     double *x = make_x_grid(x0, l, n);
     double *u = make_mem(n);
     double *v = make_mem(n);
+    double *tu = make_grid_fun(n, x, sys_given.u);
+    double *tv = make_grid_fun(n, x, sys_given.v);
     u[0] = y10;
     v[0] = y20;
-    sys_rk4(n, x, u, v, sys_given.f, sys_given.g);
+    sys_rk4(n, x, u, v, sys_given.f1, sys_given.f2);
     for (int i = 0; i <= n; ++i) {
-        printf("%lf %lf %lf\n", x[i], y[i], u[i]);
+        printf("%lf %lf %lf\n", x[i], u[i], v[i]);
     }
+    printf("%.16lf %.16lf\n", dif_between_fun(n, u, tu), dif_between_fun(n, v, tv));
+    print_res(n, x, u, "u.txt");
+    print_res(n, x, v, "v.txt");
+    print_res(n, x, tu, "tu.txt");
+    print_res(n, x, tv, "tv.txt");
     free_mem();
 }

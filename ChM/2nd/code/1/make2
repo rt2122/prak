@@ -1,0 +1,2 @@
+all:
+	gcc -std=gnu11 prog2.c -o prog2 -lm

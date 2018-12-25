@@ -30,5 +30,5 @@ given_f(double x)
     return 1.5;
 }
 
-problem given = { .p = &given_p, .q = given_q, .f = given_f, sig1 = 0, sig2 = 0.5, 
-        gam1 = 1, gam2 = 1, del1 = 1.3, del2 = 2, .x0 = 0.7, .x1 = 1};
+problem given = { .p = &given_p, .q = given_q, .f = given_f, .sig1 = 0, .sig2 = 0.5, 
+        .gam1 = 1, .gam2 = 1, .del1 = 1.3, .del2 = 2, .x0 = 0.7, .x1 = 1};
