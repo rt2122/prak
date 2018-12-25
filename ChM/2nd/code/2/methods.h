@@ -65,48 +65,6 @@ free_mem(void)
 }
 
 void
-rk2(int n, double x[], double y[], double (*f)(double x, double y))
-{
-    double tmp, h = x[1] - x[0];
-    for (int i = 0; i < n; ++i) {
-        tmp = y[i] + f(x[i], y[i]) * h;
-        y[i + 1] = y[i] + (f(x[i], y[i]) + f(x[i + 1], tmp)) * h / 2.0;
-    }
-}
-
-void
-rk4(int n, double x[], double y[], double (*f)(double x, double y)) 
-{
-    double k1, k2, k3, k4, h = x[1] - x[0];
-    for (int i = 0; i < n; ++i) {
-        k1 = f(x[i], y[i]);
-        k2 = f(x[i] + h / 2, y[i] + h * k1 / 2);
-        k3 = f(x[i] + h / 2, y[i] + h * k2 / 2);
-        k4 = f(x[i] + h, y[i] + h * k3);
-        y[i + 1] = y[i] + h * (k1 + 2 * k2 + 3 * k3 + k4) / 6;
-    }
-}
-
-void
-sys_rk4(int n, double x[], double u[], double v[], double (*f)(double x, double u, double v), 
-        double (*g)(double x, double u, double v))
-{
-    double h = x[1] - x[0], k1, k2, k3, k4, m1, m2, m3, m4;
-    for (int i = 0; i < n; ++i) {
-        k1 = f(x[i], u[i], v[i]);
-        m1 = g(x[i], u[i], v[i]);
-        k2 = f(x[i] + h / 2, u[i] + k1 / 2, v[i] + m1 / 2);
-        m2 = g(x[i] + h / 2, u[i] + k1 / 2, v[i] + m1 / 2);
-        k3 = f(x[i] + h / 2, u[i] + k2 / 2, v[i] + m2 / 2);
-        m3 = g(x[i] + h / 2, u[i] + k2 / 2, v[i] + m2 / 2);
-        k4 = f(x[i] + h, u[i] + k3, v[i] + m3);
-        m4 = g(x[i] + h, u[i] + k3, v[i] + m3);
-        u[i + 1] = u[i] + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
-        v[i + 1] = v[i] + h * (m1 + 2 * m2 + 2 * m3 + m4) / 6;
-    }
-}
-
-void
 print_res(int n, double *x, double *y, const char *name)
 {
     FILE *f = fopen(name, "w");
